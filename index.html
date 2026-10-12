@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mutfak Sihirbazı - Dolabındakilerle Ne Pişirsem?</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Phosphor Icons CDN -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            primary: {
+              50: '#fef3f2',
+              100: '#fee4e2',
+              500: '#f04438',
+              600: '#d92d20',
+              700: '#b42318'
+            },
+            amberBrand: {
+              500: '#f79009',
+              600: '#dc6803'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.03); opacity: 0.9; }
+    }
+    .pulse-badge {
+      animation: pulseGlow 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col selection:bg-rose-100 selection:text-rose-900">
+
+  <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 py-3.5 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-rose-500 to-amber-500 flex items-center justify-center text-white shadow-md shadow-rose-500/20">
+          <i class="ph-bold ph-cooking-pot text-2xl"></i>
+        </div>
+        <div>
+          <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-rose-600 to-amber-600 bg-clip-text text-transparent">Mutfak Sihirbazı</span>
+          <p class="text-xs text-slate-500 font-medium hidden sm:block">Dolabındakilerle leziz tarifler keşfet</p>
+        </div>
+      </div>
+      
+      <!-- Quick Counter -->
+      <div class="flex items-center gap-2 bg-slate-100 px-3.5 py-1.5 rounded-full border border-slate-200/80">
+        <i class="ph-bold ph-basket text-rose-500"></i>
+        <span class="text-xs font-semibold text-slate-700">Seçili: <span id="selectedCountBadge" class="text-rose-600 font-bold">0</span> malzeme</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    
+    <!-- LEFT PANEL: INGREDIENT SELECTION (Desktop: 4 cols) -->
+    <aside class="lg:col-span-4 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-6">
+      
+      <div>
+        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <i class="ph-bold ph-refrigerator text-rose-500 text-xl"></i>
+          Mutfaktaki Malzemeler
+        </h2>
+        <p class="text-xs text-slate-500 mt-1">
+          Dolabınızda, kilerinizde ne varsa ekleyin; en uygun tarifleri anında hesaplayalım.
+        </p>
+      </div>
+
+      <div class="space-y-2 relative">
+        <label for="ingredientInput" class="text-xs font-semibold text-slate-700 uppercase tracking-wider block">
+          Malzeme Ara veya Ekle
+        </label>
+        <div class="relative">
+          <input 
+            type="text" 
+            id="ingredientInput" 
+            placeholder="Örn: domates, yumurta, un..." 
+            class="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all placeholder:text-slate-400"
+            autocomplete="off"
+          />
+          <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-base"></i>
+          <button id="addInputBtn" class="absolute right-2 top-2 p-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl transition shadow-sm" title="Ekle">
+            <i class="ph-bold ph-plus text-sm"></i>
+          </button>
+        </div>
+        
+        <!-- Autocomplete Suggestions List -->
+        <div id="autocompleteList" class="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl max-h-56 overflow-y-auto hidden z-20 custom-scrollbar">
+          <!-- Autocomplete items appended here -->
+        </div>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-2.5">
+          <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Eklenen Malzemeler</span>
+          <button id="clearIngredientsBtn" class="text-xs text-rose-600 hover:text-rose-700 font-semibold transition hover:underline hidden">
+            Tümünü Temizle
+          </button>
+        </div>
+
+        <div id="selectedTagsContainer" class="flex flex-wrap gap-2 min-h-[44px] p-2.5 bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
+          <p id="emptyTagsPrompt" class="text-xs text-slate-400 m-auto py-2 italic text-center">Henüz malzeme eklenmedi. Aşağıdan seçebilir veya yazabilirsiniz.</p>
+        </div>
+      </div>
+
+      <hr class="border-slate-100">
+
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+            <i class="ph-bold ph-lightning text-amber-500"></i> Hızlı Malzeme Ekle
+          </span>
+          <span class="text-[11px] text-slate-400">Tıkla ve ekle</span>
+        </div>
+        <div id="quickPickContainer" class="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+
+      <!-- Basic Staples Note -->
+      <div class="p-3.5 bg-amber-50/70 border border-amber-200/60 rounded-2xl flex items-start gap-2.5 text-xs text-amber-900">
+        <i class="ph-bold ph-info text-amber-600 text-base flex-shrink-0 mt-0.5"></i>
+        <span><strong>Tuz, karabiber, su ve sıvı yağ</strong> mutfakta standart varsayılır ve eşleşme puanınızı düşürmez.</span>
+      </div>
+
+    </aside>
+
+    <!-- RIGHT PANEL: RECIPE RESULTS (Desktop: 8 cols) -->
+    <section class="lg:col-span-8 space-y-6">
+      
+      <!-- Filter and Status Header -->
+      <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-xl font-bold text-slate-900">Tarif Önerileri</h1>
+          <p id="recipesCountLabel" class="text-xs text-slate-500 mt-0.5">Toplam 50 tarif taranıyor</p>
+        </div>
+
+        <!-- Mode Toggle Pill Buttons -->
+        <div class="inline-flex p-1 bg-slate-100 rounded-2xl border border-slate-200 text-xs font-semibold">
+          <button id="filterAll" class="filter-btn active-filter px-3.5 py-1.5 rounded-xl transition bg-white text-slate-800 shadow-sm">
+            Tümü
+          </button>
+          <button id="filterReady" class="filter-btn px-3.5 py-1.5 rounded-xl text-slate-500 hover:text-slate-800 transition">
+            <span class="flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+              Hemen Yap
+            </span>
+          </button>
+          <button id="filterFewMissing" class="filter-btn px-3.5 py-1.5 rounded-xl text-slate-500 hover:text-slate-800 transition">
+            1-2 Eksikli
+          </button>
+        </div>
+      </div>
+
+      <!-- Categories Pills (Quick category filtering) -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar" id="categoryFilterBar">
+        <button data-cat="all" class="cat-btn bg-slate-900 text-white px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition shadow-sm">
+          Tüm Kategoriler
+        </button>
+        <button data-cat="Kahvaltı" class="cat-btn bg-white hover:bg-slate-100 text-slate-600 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border border-slate-200 transition">
+          Kahvaltılık
+        </button>
+        <button data-cat="Ana Yemek" class="cat-btn bg-white hover:bg-slate-100 text-slate-600 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border border-slate-200 transition">
+          Ana Yemekler
+        </button>
+        <button data-cat="Çorba" class="cat-btn bg-white hover:bg-slate-100 text-slate-600 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border border-slate-200 transition">
+          Çorbalar
+        </button>
+        <button data-cat="Makarna & Pilav" class="cat-btn bg-white hover:bg-slate-100 text-slate-600 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border border-slate-200 transition">
+          Makarna & Pilav
+        </button>
+        <button data-cat="Salata & Meze" class="cat-btn bg-white hover:bg-slate-100 text-slate-600 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border border-slate-200 transition">
+          Salata & Meze
+        </button>
+        <button data-cat="Tatlı" class="cat-btn bg-white hover:bg-slate-100 text-slate-600 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border border-slate-200 transition">
+          Tatlılar
+        </button>
+      </div>
+
+      <!-- RECIPES GRID -->
+      <div id="recipeCardsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <!-- Dynamically rendered by JS -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="noResultsState" class="hidden bg-white border border-slate-200 rounded-3xl p-12 text-center space-y-4">
+        <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto text-3xl">
+          <i class="ph-bold ph-cookie"></i>
+        </div>
+        <h3 class="text-base font-bold text-slate-800">Seçilen kriterlere uygun tarif bulunamadı</h3>
+        <p class="text-xs text-slate-500 max-w-sm mx-auto">
+          Filtreleri "Tümü" olarak değiştirebilir veya mutfağınıza birkaç malzeme daha ekleyerek lezzetli seçenekler yakalayabilirsiniz.
+        </p>
+      </div>
+
+    </section>
+  </main>
+
+  <div id="recipeModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden transform transition-all duration-300">
+      
+      <!-- Modal Header -->
+      <div class="p-6 border-b border-slate-100 flex items-start justify-between bg-slate-50/50">
+        <div>
+          <div class="flex items-center gap-2 mb-1.5">
+            <span id="modalCategory" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700"></span>
+            <span id="modalTime" class="text-xs font-semibold text-slate-500 flex items-center gap-1">
+              <i class="ph-bold ph-clock"></i> <span id="modalTimeText"></span>
+            </span>
+            <span id="modalServings" class="text-xs font-semibold text-slate-500 flex items-center gap-1">
+              <i class="ph-bold ph-users"></i> <span id="modalServingsText"></span>
+            </span>
+          </div>
+          <h2 id="modalTitle" class="text-2xl font-extrabold text-slate-900 tracking-tight"></h2>
+        </div>
+        <button id="closeModalBtn" class="text-slate-400 hover:text-slate-700 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm transition">
+          <i class="ph-bold ph-x text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Modal Content Body -->
+      <div class="p-6 overflow-y-auto space-y-6 custom-scrollbar text-sm">
+        
+        <!-- Ingredients Section -->
+        <div>
+          <h3 class="font-bold text-slate-900 mb-3 flex items-center gap-2 text-sm uppercase tracking-wider">
+            <i class="ph-bold ph-list-checks text-rose-500"></i> Malzeme Listesi
+          </h3>
+          <div id="modalIngredientsList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <!-- Populated via script with checkmarks for available items -->
+          </div>
+        </div>
+
+        <hr class="border-slate-100">
+
+        <!-- Preparation Steps -->
+        <div>
+          <h3 class="font-bold text-slate-900 mb-3 flex items-center gap-2 text-sm uppercase tracking-wider">
+            <i class="ph-bold ph-fire text-amber-500"></i> Hazırlanış Adımları
+          </h3>
+          <ol id="modalStepsList" class="space-y-3 text-slate-700 text-xs sm:text-sm list-decimal list-inside leading-relaxed">
+            <!-- Populated via script -->
+          </ol>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+        <button id="closeModalBottomBtn" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-medium text-xs transition">
+          Kapat
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // Pantry items that are always considered in the household
+    const STAPLES = ["tuz", "karabiber", "su", "sıvı yağ", "zeytinyağı"];
+
+    // 50 Rich Recipes Database
+    const RECIPES = [
+      {
+        id: 1,
+        title: "Geleneksel Menemen",
+        category: "Kahvaltı",
+        time: "15 dk",
+        servings: "2 Kişilik",
+        ingredients: ["yumurta", "domates", "biber", "tereyağı", "zeytinyağı", "tuz", "karabiber"],
+        steps: [
+          "Biberleri ince ince doğrayıp tereyağı ve zeytinyağında kokusu çıkana kadar soteleyin.",
+          "Kabukları soyulup küp doğranmış domatesleri ekleyin ve suyunu çekene dek kısık ateşte pişirin.",
+          "Yumurtaları kırıp tuz ve karabiber ilave edin, hafifçe karıştırarak kıvam almasını sağlayın.",
+          "Sıcak ekmek eşliğinde servis edin."
+        ]
+      },
+      {
+        id: 2,
+        title: "Kırmızı Mercimek Çorbası",
+        category: "Çorba",
+        time: "25 dk",
+        servings: "4 Kişilik",
+        ingredients: ["kırmızı mercimek", "soğan", "havuç", "patates", "salça", "zeytinyağı", "tuz", "su", "limon"],
+        steps: [
+          "Soğanı, patatesi ve havucu iri küpler halinde doğrayın.",
+          "Tencerede zeytinyağında soğanları hafif pembeleştirip salçayı kokusu çıkana kadar kavurun.",
+          "Yıkanmış mercimek, sebzeler ve suyu ekleyip sebzeler yumuşayana dek kaynatın.",
+          "Blenderdan geçirip pürüzsüz yapın, limon dilimleriyle sıcak ikram edin."
+        ]
+      },
+      {
+        id: 3,
+        title: "Fırında Kaşarlı Mantar",
+        category: "Salata & Meze",
+        time: "20 dk",
+        servings: "2 Kişilik",
+        ingredients: ["mantar", "kaşar peyniri", "tereyağı", "tuz", "karabiber"],
+        steps: [
+          "Mantarların saplarını ayıklayın ve fırın tepsisine dizin.",
+          "Ortalarına minik birer parça tereyağı, tuz ve karabiber koyun.",
+          "180 derece fırında 10 dakika pişirdikten sonra üzerlerine rendelenmiş kaşar ekleyin.",
+          "Peynirler eriyip kızarana dek 5-7 dakika daha fırınlayın."
+        ]
+      },
+      {
+        id: 4,
+        title: "Kremalı Mantarlı Makarna",
+        category: "Makarna & Pilav",
+        time: "20 dk",
+        servings: "2 Kişilik",
+        ingredients: ["makarna", "mantar", "krema", "sarımsak", "zeytinyağı", "tuz", "karabiber", "kaşar peyniri"],
+        steps: [
+          "Makarnayı bol tuzlu suda al dente kıvamda haşlayın.",
+          "Tavada sarımsak ve doğranmış mantarları yüksek ateşte soteleyin.",
+          "Kremayı ekleyip 2 dakika kısık ateşte çektirin, baharatları katın.",
+          "Haşlanan makarnayı sosa ekleyip karıştırın, kaşar rendesiyle süsleyin."
+        ]
+      },
+      {
+        id: 5,
+        title: "Klasik Anne Köftesi",
+        category: "Ana Yemek",
+        time: "30 dk",
+        servings: "4 Kişilik",
+        ingredients: ["kıyma", "soğan", "ekmek içi", "yumurta", "maydanoz", "sarımsak", "tuz", "karabiber", "kimyon"],
+        steps: [
+          "Geniş kaba kıymayı, rendelenip suyu sıkılmış soğanı ve sarımsağı alın.",
+          "Islatılıp sıkılmış ekmek içi, yumurta, kıyılmış maydanoz ve baharatları ekleyin.",
+          "En az 10 dakika özleşene kadar yoğurup şekil verin ve dolapta dinlendirin.",
+          "Az yağlı tavada veya döküm ızgarada önlü arkalı pişirin."
+        ]
+      },
+      {
+        id: 6,
+        title: "Patatesli Yumurta",
+        category: "Kahvaltı",
+        time: "15 dk",
+        servings: "2 Kişilik",
+        ingredients: ["patates", "yumurta", "zeytinyağı", "tuz", "karabiber", "pul biber"],
+        steps: [
+          "Patatesleri küp küp doğrayın ve tavada kızgın zeytinyağında yumuşayana kadar kızartın.",
+          "Çırpılmış yumurtaları tuz ve pul biberle birlikte patateslerin üzerine dökün.",
+          "Kapağını kapatıp kısık ateşte yumurtalar pişene kadar tutun."
+        ]
+      },
+      {
+        id: 7,
+        title: "Pankek (Pancake)",
+        category: "Kahvaltı",
+        time: "15 dk",
+        servings: "3 Kişilik",
+        ingredients: ["un", "süt", "yumurta", "şeker", "kabartma tozu", "tereyağı"],
+        steps: [
+          "Yumurta ve şekeri köpürene dek çırpın, ardından süt ve eritilmiş tereyağını ekleyin.",
+          "Un ve kabartma tozunu eleyerek ekleyip pürüzsüz akışkan hamur elde edin.",
+          "Hafif yağlanmış teflon tavada arkalı önlü göz göz olana kadar pişirin."
+        ]
+      },
+      {
+        id: 8,
+        title: "Tavuk Sote",
+        category: "Ana Yemek",
+        time: "30 dk",
+        servings: "3 Kişilik",
+        ingredients: ["tavuk göğsü", "soğan", "biber", "domates", "sarımsak", "zeytinyağı", "salça", "tuz", "karabiber", "kekik"],
+        steps: [
+          "Kuşbaşı doğranmış tavukları tavada suyunu salıp çekene kadar soteleyin.",
+          "Zeytinyağı, yemeklik doğranmış soğan, sarımsak ve biberleri ekleyip kavurun.",
+          "Salça ve küp domatesleri ekleyip kapağı kapalı 10-12 dakika pişirin. Kekikle taçlandırın."
+        ]
+      },
+      {
+        id: 9,
+        title: "Ezogelin Çorbası",
+        category: "Çorba",
+        time: "35 dk",
+        servings: "4 Kişilik",
+        ingredients: ["kırmızı mercimek", "bulgur", "pirinç", "soğan", "salça", "nane", "tereyağı", "tuz", "su", "pul biber"],
+        steps: [
+          "Mercimek, bulgur ve pirinci tencerede bol suyla yumuşayana kadar haşlayın.",
+          "Ayrı bir tavada tereyağında soğanı kavurun, salça, nane ve pul biberi ekleyip kokulandırın.",
+          "Sosu çorbaya ilave edip 10 dakika daha kısık ateşte özleşmeye bırakın."
+        ]
+      },
+      {
+        id: 10,
+        title: "Domatesli Şehriyeli Bulgur Pilavı",
+        category: "Makarna & Pilav",
+        time: "25 dk",
+        servings: "4 Kişilik",
+        ingredients: ["bulgur", "şehriye", "domates", "biber", "soğan", "tereyağı", "zeytinyağı", "tuz", "su"],
+        steps: [
+          "Tereyağı ve zeytinyağında şehriyeyi kavurun, ardından yemeklik soğan ve biberi ekleyin.",
+          "Rendelenmiş domatesi ve yıkanmış bulguru katıp 2 dakika kavurun.",
+          "Sıcak su ve tuz ilave edip kısık ateşte suyunu çekene kadar pişirin, demlendirin."
+        ]
+      },
+      {
+        id: 11,
+        title: "Pratik Sufle",
+        category: "Tatlı",
+        time: "15 dk",
+        servings: "2 Kişilik",
+        ingredients: ["çikolata", "tereyağı", "yumurta", "şeker", "un"],
+        steps: [
+          "Tereyağı ile çikolatayı benmari usulü veya çok kısık ateşte eritin.",
+          "Yumurta ve şekeri mikserle beyazlaşana kadar çırpın.",
+          "Çikolata karışımını ve elenmiş unu ekleyip yağlanmış sufle kaplarına paylaştırın.",
+          "200 derece önceden ısıtılmış fırında tam 8-9 dakika pişirip akışkan servis edin."
+        ]
+      },
+      {
+        id: 12,
+        title: "Fırın Makarna",
+        category: "Makarna & Pilav",
+        time: "35 dk",
+        servings: "4 Kişilik",
+        ingredients: ["makarna", "süt", "un", "tereyağı", "kaşar peyniri", "tuz", "karabiber"],
+        steps: [
+          "Makarnayı haşlayıp süzün.",
+          "Tereyağı ve undan beşamel sos için kavurma yapıp yavaş yavaş süt ekleyin ve kıvam aldırın.",
+          "Makarna ile beşamel sosu karıştırıp fırın kabına yayın, üzerine bol kaşar rendeleyin.",
+          "190 derece fırında nar gibi kızarana dek pişirin."
+        ]
+      },
+      {
+        id: 13,
+        title: "Karnabahar Graten",
+        category: "Ana Yemek",
+        time: "40 dk",
+        servings: "4 Kişilik",
+        ingredients: ["karnabahar", "süt", "un", "tereyağı", "kaşar peyniri", "tuz", "karabiber"],
+        steps: [
+          "Karnabaharları çiçeklerine ayırıp hafif diri kalacak şekilde haşlayın.",
+          "Beşamel sos için tereyağı, un ve sütü pişirip baharatlandırın.",
+          "Haşlanan karnabaharların üzerine sosu döküp kaşar peyniri ile fırınlayın."
+        ]
+      },
+      {
+        id: 14,
+        title: "Mücver",
+        category: "Salata & Meze",
+        time: "25 dk",
+        servings: "4 Kişilik",
+        ingredients: ["kabak", "yumurta", "un", "dereotu", "maydanoz", "beyaz peynir", "tuz", "sıvı yağ"],
+        steps: [
+          "Kabakları rendeleyip suyunu avucunuzda iyice sıkın.",
+          "Yumurta, ince kıyılmış yeşillikler, ufalanmış beyaz peynir ve unu harmanlayın.",
+          "Kızgın yağda kaşık kaşık dökerek iki tarafını altın sarısı olana kadar kızartın."
+        ]
+      },
+      {
+        id: 15,
+        title: "Akdeniz Salatası",
+        category: "Salata & Meze",
+        time: "10 dk",
+        servings: "2 Kişilik",
+        ingredients: ["marul", "domates", "salatalık", "zeytin", "beyaz peynir", "zeytinyağı", "limon", "kekik"],
+        steps: [
+          "Yeşillikleri yıkayıp iri parçalar halinde doğrayın.",
+          "Domates, salatalık ve zeytinleri ekleyin.",
+          "Üzerine küp beyaz peynir serpin, zeytinyağı ve limon sosuyla harmanlayın."
+        ]
+      },
+      {
+        id: 16,
+        title: "Şakşuka",
+        category: "Salata & Meze",
+        time: "30 dk",
+        servings: "4 Kişilik",
+        ingredients: ["patlıcan", "biber", "domates", "sarımsak", "zeytinyağı", "tuz", "şeker"],
+        steps: [
+          "Patlıcan ve biberleri küp doğrayıp kızartın ve fazla yağını süzdürün.",
+          "Ayrı tavada sarımsak, rendelenmiş domates ve bir fiske şekeri pişirerek sos hazırlayın.",
+          "Kızarmış sebzelerin üzerine ılık domates sosunu gezdirin."
+        ]
+      },
+      {
+        id: 17,
+        title: "Kuru Fasulye",
+        category: "Ana Yemek",
+        time: "50 dk",
+        servings: "4 Kişilik",
+        ingredients: ["kuru fasulye", "soğan", "salça", "biber", "tereyağı", "zeytinyağı", "tuz", "su"],
+        steps: [
+          "Önceden ıslatılmış fasulyeleri hafifçe haşlayıp süzün.",
+          "Tencerede yağda soğan ve biberi kavurun, salçayı ekleyip kokusunu çıkarın.",
+          "Fasulyeleri ve sıcak suyu ilave edip kısık ateşte lokum gibi olana kadar pişirin."
+        ]
+      },
+      {
+        id: 18,
+        title: "Tane Tane Pirinç Pilavı",
+        category: "Makarna & Pilav",
+        time: "25 dk",
+        servings: "4 Kişilik",
+        ingredients: ["pirinç", "şehriye", "tereyağı", "sıvı yağ", "tuz", "su"],
+        steps: [
+          "Pirinçleri ılık tuzlu suda 20 dakika bekletip iyice yıkayın.",
+          "Tencerede şehriyeyi yağda altın sarısı olana dek kavurun.",
+          "Pirinçleri ekleyip şeffaflaşana kadar kavurun; sıcak su ve tuz ekleyip demlenmeye bırakın."
+        ]
+      },
+      {
+        id: 19,
+        title: "Krep",
+        category: "Kahvaltı",
+        time: "15 dk",
+        servings: "3 Kişilik",
+        ingredients: ["un", "süt", "yumurta", "tuz", "sıvı yağ"],
+        steps: [
+          "Tüm malzemeleri derin bir kapta hiç pürüz kalmayana dek çırpın.",
+          "Hafif yağlanmış tavaya bir kepçe döküp tavayı eğerek yayın.",
+          "İki tarafını da altın rengi olana kadar pişirin."
+        ]
+      },
+      {
+        id: 20,
+        title: "Haydari",
+        category: "Salata & Meze",
+        time: "10 dk",
+        servings: "3 Kişilik",
+        ingredients: ["süzme yoğurt", "beyaz peynir", "sarımsak", "nane", "tereyağı", "zeytinyağı", "tuz"],
+        steps: [
+          "Peyniri çatalla ezin ve süzme yoğurt ile ezilmiş sarımsakla homojen karıştırın.",
+          "Küçük bir tavada tereyağında naneyi hafifçe çevirip yoğurda katın.",
+          "Zeytinyağı gezdirerek soğuk servis edin."
+        ]
+      },
+      {
+        id: 21,
+        title: "Yayık Çorbası (Yayla)",
+        category: "Çorba",
+        time: "25 dk",
+        servings: "4 Kişilik",
+        ingredients: ["yoğurt", "pirinç", "yumurta", "un", "nane", "tereyağı", "tuz", "su"],
+        steps: [
+          "Pirinçleri suda yumuşayana kadar haşlayın.",
+          "Ayrı kapta yoğurt, un ve yumurta sarısını çırpıp ılıtarak çorbaya ekleyin.",
+          "Sürekli karıştırarak kaynatın; tereyağında yakılmış naneyle servis edin."
+        ]
+      },
+      {
+        id: 22,
+        title: "Tavuklu Sezar Salata",
+        category: "Salata & Meze",
+        time: "20 dk",
+        servings: "2 Kişilik",
+        ingredients: ["tavuk göğsü", "marul", "ekmek içi", "sarımsak", "mayonez", "kaşar peyniri", "zeytinyağı", "limon"],
+        steps: [
+          "Tavuk göğsünü ızgara yapıp jülyen dilimleyin. Ekmekleri fırında kruton yapın.",
+          "Marulları doğrayıp mayonez, limon ve sarımsaklı sosla harmanlayın.",
+          "Üzerine tavuk, kruton ve peynir rendesi serpiştirin."
+        ]
+      },
+      {
+        id: 23,
+        title: "Ispanaklı Börek",
+        category: "Kahvaltı",
+        time: "45 dk",
+        servings: "6 Kişilik",
+        ingredients: ["yufka", "ıspanak", "soğan", "beyaz peynir", "yumurta", "süt", "sıvı yağ"],
+        steps: [
+          "Ispanakları doğrayıp kavrulmuş soğan ve beyaz peynirle karıştırın.",
+          "Yufkaların arasına süt, yumurta ve yağdan sos sürerek harcı serin.",
+          "Tepsiye dizip üzerine yumurta sarısı sürün ve 180 derecede kızarana dek fırınlayın."
+        ]
+      },
+      {
+        id: 24,
+        title: "Fırında Baharatlı Patates",
+        category: "Salata & Meze",
+        time: "35 dk",
+        servings: "3 Kişilik",
+        ingredients: ["patates", "sarımsak", "zeytinyağı", "kekik", "pul biber", "tuz", "karabiber"],
+        steps: [
+          "Patatesleri elma dilim doğrayıp kurulayın.",
+          "Zeytinyağı, ezilmiş sarımsak ve baharatlarla iyice harmanlayın.",
+          "Fırın tepsisine tek sıra dizip 200 derecede çıtır olana kadar pişirin."
+        ]
+      },
+      {
+        id: 25,
+        title: "Domates Çorbası",
+        category: "Çorba",
+        time: "25 dk",
+        servings: "4 Kişilik",
+        ingredients: ["domates", "un", "tereyağı", "süt", "salça", "kaşar peyniri", "tuz", "karabiber"],
+        steps: [
+          "Tereyağında unu kokusu çıkana kadar kavurun, salça ve rendelenmiş domatesi katın.",
+          "Sıcak su ekleyip 15 dakika kaynatın, ardından ılık süt ilave edip karıştırın.",
+          "Rendelenmiş kaşar peyniri ile servis yapın."
+        ]
+      },
+      {
+        id: 26,
+        title: "Sarımsaklı Yoğurtlu Makarna",
+        category: "Makarna & Pilav",
+        time: "15 dk",
+        servings: "2 Kişilik",
+        ingredients: ["makarna", "yoğurt", "sarımsak", "tereyağı", "pul biber", "nane", "tuz"],
+        steps: [
+          "Makarnayı haşlayıp süzün.",
+          "Ezilmiş sarımsakla yoğurdu ve tuzu karıştırıp makarnanın üzerine dökün.",
+          "Tavada kızdırılmış tereyağı ve pul biberli sosu üzerine gezdirin."
+        ]
+      },
+      {
+        id: 27,
+        title: "Kakaolu Islak Kek",
+        category: "Tatlı",
+        time: "40 dk",
+        servings: "6 Kişilik",
+        ingredients: ["un", "şeker", "kakao", "süt", "sıvı yağ", "yumurta", "kabartma tozu", "vanilya"],
+        steps: [
+          "Yumurta, şeker, süt, yağ ve kakaoyu çırpın; sostan 1 su bardağı ayırın.",
+          "Kalan karışıma un, kabartma tozu ve vanilya ekleyip fırınlayın.",
+          "Fırından çıkan sıcak keke ayırdığınız sosu döküp çekmesini bekleyin."
+        ]
+      },
+      {
+        id: 28,
+        title: "Zeytinyağlı Taze Fasulye",
+        category: "Ana Yemek",
+        time: "40 dk",
+        servings: "4 Kişilik",
+        ingredients: ["taze fasulye", "domates", "soğan", "zeytinyağı", "şeker", "tuz", "su"],
+        steps: [
+          "Fasulyeleri ayıklayıp boylamasına kesin.",
+          "Tencereye soğan, fasulye ve küp domatesleri kat kat yerleştirin.",
+          "Zeytinyağı, tuz ve şekeri ekleyip kapağı kapalı kısık ateşte pişmeye bırakın."
+        ]
+      },
+      {
+        id: 29,
+        title: "Köz Patlıcan Salatası",
+        category: "Salata & Meze",
+        time: "20 dk",
+        servings: "3 Kişilik",
+        ingredients: ["patlıcan", "biber", "sarımsak", "zeytinyağı", "limon", "tuz"],
+        steps: [
+          "Patlıcan ve biberleri ocakta veya fırında közleyip kabuklarını soyun.",
+          "İnce ince kıyıp ezilmiş sarımsak, zeytinyağı ve limonla karıştırın."
+        ]
+      },
+      {
+        id: 30,
+        title: "Magnolia Tatlısı",
+        category: "Tatlı",
+        time: "25 dk",
+        servings: "4 Kişilik",
+        ingredients: ["süt", "un", "şeker", "yumurta", "krema", "bisküvi", "muz", "vanilya"],
+        steps: [
+          "Süt, un, şeker ve yumurta sarısını muhallebi kıvamına gelene kadar pişirin.",
+          "Soğuyunca kremayı ekleyip mikserle pürüzsüz olana kadar çırpın.",
+          "Bardaklara ezilmiş bisküvi, muz dilimleri ve muhallebiyi kat kat yerleştirin."
+        ]
+      },
+      {
+        id: 31,
+        title: "Tavuk Çorbası",
+        category: "Çorba",
+        time: "35 dk",
+        servings: "4 Kişilik",
+        ingredients: ["tavuk göğsü", "şehriye", "havuç", "un", "tereyağı", "limon", "tuz", "karabiber", "su"],
+        steps: [
+          "Tavuk göğsünü haşlayıp didikleyin, suyunu saklayın.",
+          "Havuçları ince rendeleyip tereyağında soteleyin, tavuk suyu ve şehriyeleri ekleyin.",
+          "Didiklenmiş tavukları katıp limon suyu ve karabiberle servis edin."
+        ]
+      },
+      {
+        id: 32,
+        title: "Havuç Tarator",
+        category: "Salata & Meze",
+        time: "15 dk",
+        servings: "3 Kişilik",
+        ingredients: ["havuç", "süzme yoğurt", "sarımsak", "ceviz", "zeytinyağı", "tuz"],
+        steps: [
+          "Rendelenmiş havuçları zeytinyağında yumuşayana dek soteleyip soğutun.",
+          "Süzme yoğurt, sarımsak, tuz ve dövülmüş cevizi karıştırın.",
+          "Havuçları yoğurda ekleyip harmanlayın."
+        ]
+      },
+      {
+        id: 33,
+        title: "Sucuklu Kaşarlı Tost",
+        category: "Kahvaltı",
+        time: "10 dk",
+        servings: "1 Kişilik",
+        ingredients: ["ekmek içi", "sucuk", "kaşar peyniri", "tereyağı"],
+        steps: [
+          "Ekmek dilimlerinin arasına dilimlenmiş sucuk ve kaşar peynirini dizin.",
+          "Tost makinesinde kaşar eriyene kadar bastırarak pişirin, üzerine tereyağı sürün."
+        ]
+      },
+      {
+        id: 34,
+        title: "Mercimek Köftesi",
+        category: "Salata & Meze",
+        time: "35 dk",
+        servings: "5 Kişilik",
+        ingredients: ["kırmızı mercimek", "bulgur", "soğan", "salça", "maydanoz", "yeşil soğan", "kimyon", "limon", "zeytinyağı"],
+        steps: [
+          "Mercimeği haşlayıp ocaktan alınca ince bulguru ekleyin ve kapağı kapalı kabartın.",
+          "Zeytinyağında soğanı ve salçayı kavurup mercimeğe ilave edin.",
+          "Baharatlar, ince kıyılmış yeşillikler ve limon suyu ile yoğurup şekil verin."
+        ]
+      },
+      {
+        id: 35,
+        title: "Fırında Sebzeli Tavuk",
+        category: "Ana Yemek",
+        time: "45 dk",
+        servings: "4 Kişilik",
+        ingredients: ["tavuk göğsü", "patates", "biber", "domates", "soğan", "salça", "zeytinyağı", "kekik", "tuz"],
+        steps: [
+          "Tavukları ve tüm sebzeleri iri parçalar halinde doğrayın.",
+          "Salça, zeytinyağı, tuz ve kekikten sos hazırlayıp tüm malzemeleri harmanlayın.",
+          "Tepsiye yayıp 200 derece fırında sebzeler kızarana kadar pişirin."
+        ]
+      },
+      {
+        id: 36,
+        title: "Ispanaklı Yumurta",
+        category: "Kahvaltı",
+        time: "20 dk",
+        servings: "2 Kişilik",
+        ingredients: ["ıspanak", "soğan", "yumurta", "zeytinyağı", "tuz", "pul biber"],
+        steps: [
+          "Soğanı zeytinyağında kavurup yıkanmış ıspanakları ekleyin ve söndürün.",
+          "Ispanakların ortasında yuvalar açıp yumurtaları kırın.",
+          "Kapağını kapatıp yumurta akları pişene dek tutun."
+        ]
+      },
+      {
+        id: 37,
+        title: "Kıymalı Makarna",
+        category: "Makarna & Pilav",
+        time: "25 dk",
+        servings: "3 Kişilik",
+        ingredients: ["makarna", "kıyma", "soğan", "salça", "domates", "sarımsak", "zeytinyağı", "karabiber"],
+        steps: [
+          "Makarnayı haşlayın.",
+          "Tavada kıymayı kavurup soğan, sarımsak ve salçayı ekleyin.",
+          "Domates püresi ve baharatları ekleyip sosu kaynatın, makarnayla karıştırın."
+        ]
+      },
+      {
+        id: 38,
+        title: "Çikolatalı Mozaik Pasta",
+        category: "Tatlı",
+        time: "20 dk",
+        servings: "6 Kişilik",
+        ingredients: ["bisküvi", "süt", "tereyağı", "kakao", "şeker", "çikolata"],
+        steps: [
+          "Eritilmiş tereyağı, süt, kakao ve şekeri karıştırarak sos yapın.",
+          "Bisküvileri iri parçalar halinde kırıp sosa bulayın.",
+          "Streç filme sarıp piramit şekli verin ve dondurucuda 2 saat bekletin."
+        ]
+      },
+      {
+        id: 39,
+        title: "Cacık",
+        category: "Salata & Meze",
+        time: "10 dk",
+        servings: "3 Kişilik",
+        ingredients: ["yoğurt", "salatalık", "sarımsak", "nane", "zeytinyağı", "su", "tuz"],
+        steps: [
+          "Salatalıkları rendeleyin veya minik minik doğrayın.",
+          "Yoğurt, ezilmiş sarımsak, tuz ve soğuk su ile hafif akışkan kıvam elde edin.",
+          "Kuru nane ve zeytinyağı gezdirerek serin servis yapın."
+        ]
+      },
+      {
+        id: 40,
+        title: "Kıymalı Bezelye Yemeği",
+        category: "Ana Yemek",
+        time: "35 dk",
+        servings: "4 Kişilik",
+        ingredients: ["bezelye", "kıyma", "patates", "havuç", "soğan", "salça", "zeytinyağı", "tuz"],
+        steps: [
+          "Tencerede kıyma ve soğanları zeytinyağında kavurun.",
+          "Küp küp doğranmış patates, havuç ve salçayı katıp 2 dakika çevirin.",
+          "Bezelyeleri ve sıcak suyu ekleyip sebzeler yumuşayana dek pişirin."
+        ]
+      },
+      {
+        id: 41,
+        title: "Mantar Sote",
+        category: "Ana Yemek",
+        time: "20 dk",
+        servings: "2 Kişilik",
+        ingredients: ["mantar", "soğan", "biber", "domates", "zeytinyağı", "sarımsak", "karabiber", "tuz"],
+        steps: [
+          "Mantarları dilimleyip yüksek ateşte suyunu salıp çekene dek pişirin.",
+          "Soğan, biber ve sarımsak ekleyip sotelemeye devam edin.",
+          "Domates ve baharatları ekleyip 5 dakika kısık ateşte kapağı kapalı pişirin."
+        ]
+      },
+      {
+        id: 42,
+        title: "Fırında Somon",
+        category: "Ana Yemek",
+        time: "25 dk",
+        servings: "2 Kişilik",
+        ingredients: ["somon", "limon", "zeytinyağı", "sarımsak", "karabiber", "tuz"],
+        steps: [
+          "Somon filetoları zeytinyağı, ezilmiş sarımsak ve tuz-karabiber ile marine edin.",
+          "Yağlı kağıt serili tepsiye yerleştirip üzerine limon dilimleri dizin.",
+          "190 derece fırında yaklaşık 18-20 dakika pişirin."
+        ]
+      },
+      {
+        id: 43,
+        title: "Muzlu Yulaf Lapası (Porridge)",
+        category: "Kahvaltı",
+        time: "10 dk",
+        servings: "1 Kişilik",
+        ingredients: ["yulaf", "süt", "muz", "bal", "tarçın", "ceviz"],
+        steps: [
+          "Yulaf ve sütü küçük sos tenceresinde kıvam alana kadar kaynatın.",
+          "Kaseye alıp üzerine dilimlenmiş muz, tarçın, ceviz ve bal ekleyin."
+        ]
+      },
+      {
+        id: 44,
+        title: "Ton Balıklı Salata",
+        category: "Salata & Meze",
+        time: "10 dk",
+        servings: "2 Kişilik",
+        ingredients: ["ton balığı", "marul", "mısır", "domates", "zeytinyağı", "limon", "tuz"],
+        steps: [
+          "Marul ve domatesleri yıkayıp salata kasesine doğrayın.",
+          "Yağı süzülmüş ton balığı ve mısırı üzerine ilave edin.",
+          "Zeytinyağı ve limon sosuyla lezzetlendirin."
+        ]
+      },
+      {
+        id: 45,
+        title: "Köz Biber Mezesi",
+        category: "Salata & Meze",
+        time: "15 dk",
+        servings: "3 Kişilik",
+        ingredients: ["biber", "sarımsak", "zeytinyağı", "beyaz peynir", "ceviz", "sirke"],
+        steps: [
+          "Kırmızı kapya biberleri közleyip kabuklarını soyun ve dilimleyin.",
+          "Ezilmiş sarımsak, zeytinyağı ve az sirke ile harmanlayın.",
+          "Üzerine ufalanmış beyaz peynir ve ceviz serpiştirin."
+        ]
+      },
+      {
+        id: 46,
+        title: "Sütlaç",
+        category: "Tatlı",
+        time: "40 dk",
+        servings: "5 Kişilik",
+        ingredients: ["pirinç", "süt", "şeker", "nişasta", "vanilya", "tarçın"],
+        steps: [
+          "Pirinçleri az suda yumuşayana kadar haşlayın.",
+          "Sütü ekleyip kaynatın; şekeri ilave edin.",
+          "Az sütle açılmış nişastayı ekleyip kıvam alınca kaselere paylaştırın, tarçınla servis edin."
+        ]
+      },
+      {
+        id: 47,
+        title: "Peynirli Omlet",
+        category: "Kahvaltı",
+        time: "8 dk",
+        servings: "1 Kişilik",
+        ingredients: ["yumurta", "kaşar peyniri", "tereyağı", "tuz", "karabiber"],
+        steps: [
+          "Yumurtaları tuz ve karabiberle hafifçe çırpın.",
+          "Eritilmiş tereyağlı tavaya döküp tabanı hafif pişince ortasına kaşar ekleyin.",
+          "İkiye katlayıp peynir eriyene kadar pişirin."
+        ]
+      },
+      {
+        id: 48,
+        title: "Kıymalı Patates Oturtma",
+        category: "Ana Yemek",
+        time: "45 dk",
+        servings: "4 Kişilik",
+        ingredients: ["patates", "kıyma", "soğan", "biber", "salça", "domates", "sıvı yağ", "tuz", "karabiber"],
+        steps: [
+          "Halka doğranmış patatesleri hafifçe kızartıp fırın kabına dizin.",
+          "Kıyma, soğan, biber ve salçayla lezzetli bir iç harç pişirin.",
+          "Harcı patateslerin üzerine döküp domates dilimleriyle fırında 25 dakika pişirin."
+        ]
+      },
+      {
+        id: 49,
+        title: "Un Helvası",
+        category: "Tatlı",
+        time: "25 dk",
+        servings: "4 Kişilik",
+        ingredients: ["un", "tereyağı", "şeker", "süt", "ceviz"],
+        steps: [
+          "Şeker ve sütü ayrı bir kapta şeker eriyene kadar ısıtın (kaynatmayın).",
+          "Tereyağında unu kısık ateşte rengi dönene ve kokusu çıkana kadar sabırla kavurun.",
+          "Ilık sütlü şerbeti yavaşça ekleyip hızlıca karıştırarak kıvam aldırın, cevizle servis edin."
+        ]
+      },
+      {
+        id: 50,
+        title: "Köz Patlıcanlı Çorba",
+        category: "Çorba",
+        time: "30 dk",
+        servings: "4 Kişilik",
+        ingredients: ["patlıcan", "un", "tereyağı", "süt", "sarımsak", "tuz", "karabiber", "su"],
+        steps: [
+          "Patlıcanları közleyip kabuklarını soyun ve ince ince kıyın.",
+          "Tereyağında unu kavurup ezilmiş sarımsak ve köz patlıcanları ekleyin.",
+          "Sıcak su ve sütü yavaşça ekleyerek kaynatın, pürüzsüz kıvama getirin."
+        ]
+      }
+    ];
+
+    // Frequently selected ingredients for instant clicks
+    const POPULAR_INGREDIENTS = [
+      "yumurta", "domates", "patates", "soğan", "peynir", "kaşar peyniri", 
+      "tavuk göğsü", "kıyma", "makarna", "pirinç", "mantar", "süt", 
+      "kırmızı mercimek", "yoğurt", "un", "biber", "ıspanak", "çikolata"
+    ];
+
+    // Collect all unique ingredients from recipes for search autocomplete
+    const ALL_INGREDIENTS = Array.from(
+      new Set(RECIPES.flatMap(r => r.ingredients))
+    ).sort((a, b) => a.localeCompare('tr'));
+
+    let selectedIngredients = new Set();
+    let currentFilterMode = 'all'; // 'all', 'ready', 'few'
+    let currentCategory = 'all';
+
+    // DOM Elements
+    const ingredientInput = document.getElementById('ingredientInput');
+    const addInputBtn = document.getElementById('addInputBtn');
+    const autocompleteList = document.getElementById('autocompleteList');
+    const selectedTagsContainer = document.getElementById('selectedTagsContainer');
+    const emptyTagsPrompt = document.getElementById('emptyTagsPrompt');
+    const clearIngredientsBtn = document.getElementById('clearIngredientsBtn');
+    const quickPickContainer = document.getElementById('quickPickContainer');
+    const selectedCountBadge = document.getElementById('selectedCountBadge');
+    const recipeCardsGrid = document.getElementById('recipeCardsGrid');
+    const recipesCountLabel = document.getElementById('recipesCountLabel');
+    const noResultsState = document.getElementById('noResultsState');
+
+    // Modal DOM Elements
+    const recipeModal = document.getElementById('recipeModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalCategory = document.getElementById('modalCategory');
+    const modalTimeText = document.getElementById('modalTimeText');
+    const modalServingsText = document.getElementById('modalServingsText');
+    const modalIngredientsList = document.getElementById('modalIngredientsList');
+    const modalStepsList = document.getElementById('modalStepsList');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const closeModalBottomBtn = document.getElementById('closeModalBottomBtn');
+
+    function cleanIngredient(str) {
+      return str.trim().toLowerCase().replace(/['"]/g, '');
+    }
+
+    function addIngredient(name) {
+      const cleaned = cleanIngredient(name);
+      if (!cleaned) return;
+      selectedIngredients.add(cleaned);
+      updateIngredientsView();
+      renderRecipes();
+    }
+
+    function removeIngredient(name) {
+      selectedIngredients.delete(cleanIngredient(name));
+      updateIngredientsView();
+      renderRecipes();
+    }
+
+    function clearAllIngredients() {
+      selectedIngredients.clear();
+      updateIngredientsView();
+      renderRecipes();
+    }
+
+    function updateIngredientsView() {
+      selectedCountBadge.textContent = selectedIngredients.size;
+      
+      // Update Clear Button Visibility
+      if (selectedIngredients.size > 0) {
+        clearIngredientsBtn.classList.remove('hidden');
+        emptyTagsPrompt.classList.add('hidden');
+      } else {
+        clearIngredientsBtn.classList.add('hidden');
+        emptyTagsPrompt.classList.remove('hidden');
+      }
+
+      // Re-render tags
+      // Remove previous tags except the prompt
+      const tags = selectedTagsContainer.querySelectorAll('.ingredient-tag');
+      tags.forEach(t => t.remove());
+
+      selectedIngredients.forEach(item => {
+        const tag = document.createElement('span');
+        tag.className = "ingredient-tag inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 text-rose-700 border border-rose-200/80 text-xs font-semibold shadow-xs animate-fadeIn";
+        tag.innerHTML = `
+          <span>${item}</span>
+          <button type="button" class="text-rose-400 hover:text-rose-700 transition" title="Kaldır">
+            <i class="ph-bold ph-x text-xs"></i>
+          </button>
+        `;
+        tag.querySelector('button').addEventListener('click', () => removeIngredient(item));
+        selectedTagsContainer.appendChild(tag);
+      });
+
+      // Update Quick Pick buttons state
+      renderQuickPicks();
+    }
+
+    function renderQuickPicks() {
+      quickPickContainer.innerHTML = '';
+      POPULAR_INGREDIENTS.forEach(ing => {
+        const isSelected = selectedIngredients.has(cleanIngredient(ing));
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `px-2.5 py-1.5 text-xs font-medium rounded-xl border transition-all flex items-center gap-1 ${
+          isSelected 
+            ? 'bg-rose-500 text-white border-rose-500 shadow-xs' 
+            : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+        }`;
+        btn.innerHTML = `
+          <span>${ing}</span>
+          ${isSelected ? '<i class="ph-bold ph-check text-[10px]"></i>' : '<i class="ph-bold ph-plus text-[10px] text-slate-400"></i>'}
+        `;
+        btn.addEventListener('click', () => {
+          if (isSelected) {
+            removeIngredient(ing);
+          } else {
+            addIngredient(ing);
+          }
+        });
+        quickPickContainer.appendChild(btn);
+      });
+    }
+
+    function handleAutocomplete() {
+      const query = cleanIngredient(ingredientInput.value);
+      if (!query) {
+        autocompleteList.classList.add('hidden');
+        autocompleteList.innerHTML = '';
+        return;
+      }
+
+      const matches = ALL_INGREDIENTS.filter(item => 
+        item.toLowerCase().includes(query) && !selectedIngredients.has(item)
+      );
+
+      if (matches.length === 0) {
+        autocompleteList.innerHTML = `
+          <div class="px-4 py-2.5 text-xs text-slate-400 italic flex items-center justify-between">
+            <span>"${ingredientInput.value}" listemizde yok, yine de ekle</span>
+            <button id="addCustomItemBtn" class="text-rose-600 font-bold hover:underline">Ekle</button>
+          </div>
+        `;
+        const addCustomBtn = document.getElementById('addCustomItemBtn');
+        if (addCustomBtn) {
+          addCustomBtn.addEventListener('click', () => {
+            addIngredient(ingredientInput.value);
+            ingredientInput.value = '';
+            autocompleteList.classList.add('hidden');
+          });
+        }
+      } else {
+        autocompleteList.innerHTML = matches.map(item => `
+          <button type="button" class="w-full text-left px-4 py-2.5 hover:bg-rose-50/70 text-slate-700 text-xs font-medium flex items-center justify-between border-b border-slate-50 last:border-b-0 transition">
+            <span>${item}</span>
+            <i class="ph-bold ph-plus text-rose-500 text-xs"></i>
+          </button>
+        `).join('');
+
+        // Attach clicks
+        autocompleteList.querySelectorAll('button').forEach((btn, idx) => {
+          btn.addEventListener('click', () => {
+            addIngredient(matches[idx]);
+            ingredientInput.value = '';
+            autocompleteList.classList.add('hidden');
+          });
+        });
+      }
+
+      autocompleteList.classList.remove('hidden');
+    }
+
+    function calculateRecipeMatches() {
+      const userSet = new Set(Array.from(selectedIngredients).map(cleanIngredient));
+      const stapleSet = new Set(STAPLES.map(cleanIngredient));
+
+      return RECIPES.map(recipe => {
+        const required = recipe.ingredients.map(cleanIngredient);
+        
+        // Items considered in the kitchen
+        const matched = required.filter(item => userSet.has(item) || stapleSet.has(item));
+        
+        // Critical missing items (non-staples that the user hasn't added)
+        const missing = required.filter(item => !userSet.has(item) && !stapleSet.has(item));
+        
+        // Ratio calculation based on main ingredients
+        const matchPercentage = Math.round((matched.length / required.length) * 100);
+
+        return {
+          ...recipe,
+          matched,
+          missing,
+          matchPercentage
+        };
+      });
+    }
+
+    function renderRecipes() {
+      const calculated = calculateRecipeMatches();
+      
+      // Filter logic
+      let filtered = calculated.filter(r => {
+        // Category filter
+        if (currentCategory !== 'all' && r.category !== currentCategory) {
+          return false;
+        }
+
+        // Mode filter
+        if (currentFilterMode === 'ready') {
+          return r.missing.length === 0;
+        } else if (currentFilterMode === 'few') {
+          return r.missing.length > 0 && r.missing.length <= 2;
+        }
+        return true;
+      });
+
+      // Sorting: Highest match percentage first, then least missing ingredients
+      filtered.sort((a, b) => {
+        if (b.matchPercentage !== a.matchPercentage) {
+          return b.matchPercentage - a.matchPercentage;
+        }
+        return a.missing.length - b.missing.length;
+      });
+
+      // Update recipe label count
+      recipesCountLabel.textContent = `${filtered.length} tarif listeleniyor`;
+
+      if (filtered.length === 0) {
+        recipeCardsGrid.innerHTML = '';
+        noResultsState.classList.remove('hidden');
+        return;
+      }
+
+      noResultsState.classList.add('hidden');
+      recipeCardsGrid.innerHTML = '';
+
+      filtered.forEach(recipe => {
+        const isReady = recipe.missing.length === 0;
+        const isAlmost = recipe.missing.length > 0 && recipe.missing.length <= 2;
+
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-3xl p-5 border border-slate-200/90 hover:border-rose-200 hover:shadow-lg transition-all duration-200 flex flex-col justify-between group";
+
+        // Progress color logic
+        let badgeColor = "bg-slate-100 text-slate-700 border-slate-200";
+        let barColor = "bg-slate-300";
+        if (recipe.matchPercentage >= 90) {
+          badgeColor = "bg-emerald-50 text-emerald-700 border-emerald-200";
+          barColor = "bg-emerald-500";
+        } else if (recipe.matchPercentage >= 50) {
+          badgeColor = "bg-amber-50 text-amber-700 border-amber-200";
+          barColor = "bg-amber-500";
+        }
+
+        card.innerHTML = `
+          <div>
+            <!-- Top Metadata -->
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <span class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">
+                ${recipe.category}
+              </span>
+              <div class="flex items-center gap-1.5">
+                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold border ${badgeColor} flex items-center gap-1">
+                  <i class="ph-bold ph-chart-pie-slice"></i> %${recipe.matchPercentage} Eşleşme
+                </span>
+              </div>
+            </div>
+
+            <!-- Title & Meta -->
+            <h3 class="text-base font-bold text-slate-900 group-hover:text-rose-600 transition-colors line-clamp-1 mb-1">
+              ${recipe.title}
+            </h3>
+            <div class="flex items-center gap-3 text-xs text-slate-400 mb-4">
+              <span class="flex items-center gap-1"><i class="ph-bold ph-clock"></i> ${recipe.time}</span>
+              <span class="flex items-center gap-1"><i class="ph-bold ph-users"></i> ${recipe.servings}</span>
+            </div>
+
+            <!-- Match Progress Bar -->
+            <div class="w-full bg-slate-100 h-1.5 rounded-full mb-4 overflow-hidden">
+              <div class="h-full rounded-full transition-all duration-500 ${barColor}" style="width: ${recipe.matchPercentage}%"></div>
+            </div>
+
+            <!-- Missing Ingredients Info -->
+            <div class="text-xs mb-4">
+              ${
+                isReady 
+                  ? `<div class="p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-100 text-emerald-800 font-semibold flex items-center gap-2">
+                      <i class="ph-bold ph-check-circle text-emerald-600 text-base"></i>
+                      <span>Harika! Tüm malzemelerin tam.</span>
+                     </div>`
+                  : `<div class="space-y-1">
+                      <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Eksik Kalanlar (${recipe.missing.length}):</span>
+                      <div class="flex flex-wrap gap-1">
+                        ${recipe.missing.map(m => `
+                          <span class="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 text-[11px] font-medium border border-rose-100">
+                            + ${m}
+                          </span>
+                        `).join('')}
+                      </div>
+                     </div>`
+              }
+            </div>
+          </div>
+
+          <!-- Action Button -->
+          <button type="button" class="view-recipe-btn mt-2 w-full py-2.5 px-4 rounded-xl bg-slate-50 hover:bg-rose-500 hover:text-white text-slate-700 text-xs font-semibold border border-slate-200 hover:border-rose-500 transition-all flex items-center justify-center gap-2">
+            <span>Tarifi İncele</span>
+            <i class="ph-bold ph-arrow-right text-xs"></i>
+          </button>
+        `;
+
+        // Open details modal
+        card.querySelector('.view-recipe-btn').addEventListener('click', () => openRecipeModal(recipe));
+        recipeCardsGrid.appendChild(card);
+      });
+    }
+
+    function openRecipeModal(recipe) {
+      modalTitle.textContent = recipe.title;
+      modalCategory.textContent = recipe.category;
+      modalTimeText.textContent = recipe.time;
+      modalServingsText.textContent = recipe.servings;
+
+      const userSet = new Set(Array.from(selectedIngredients).map(cleanIngredient));
+      const stapleSet = new Set(STAPLES.map(cleanIngredient));
+
+      // Build ingredients list with status icons
+      modalIngredientsList.innerHTML = recipe.ingredients.map(ing => {
+        const cleaned = cleanIngredient(ing);
+        const hasIt = userSet.has(cleaned) || stapleSet.has(cleaned);
+
+        return `
+          <div class="flex items-center gap-2 p-2 rounded-xl ${hasIt ? 'bg-emerald-50/70 border border-emerald-200/60 text-emerald-900' : 'bg-rose-50/50 border border-rose-200/50 text-rose-800'}">
+            <i class="ph-bold ${hasIt ? 'ph-check-circle text-emerald-600' : 'ph-x-circle text-rose-500'} text-base"></i>
+            <span class="font-medium">${ing}</span>
+            <span class="ml-auto text-[10px] uppercase font-bold opacity-75">${hasIt ? 'Var' : 'Eksik'}</span>
+          </div>
+        `;
+      }).join('');
+
+      // Build steps
+      modalStepsList.innerHTML = recipe.steps.map(step => `
+        <li class="pl-1">${step}</li>
+      `).join('');
+
+      // Show modal
+      recipeModal.classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
+    }
+
+    function closeRecipeModal() {
+      recipeModal.classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+    }
+
+    function setupEventListeners() {
+      // Input typing & autocomplete
+      ingredientInput.addEventListener('input', handleAutocomplete);
+      
+      ingredientInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (ingredientInput.value.trim()) {
+            addIngredient(ingredientInput.value);
+            ingredientInput.value = '';
+            autocompleteList.classList.add('hidden');
+          }
+        }
+      });
+
+      addInputBtn.addEventListener('click', () => {
+        if (ingredientInput.value.trim()) {
+          addIngredient(ingredientInput.value);
+          ingredientInput.value = '';
+          autocompleteList.classList.add('hidden');
+        }
+      });
+
+      // Close autocomplete on click outside
+      document.addEventListener('click', (e) => {
+        if (!ingredientInput.contains(e.target) && !autocompleteList.contains(e.target)) {
+          autocompleteList.classList.add('hidden');
+        }
+      });
+
+      // Clear all tags
+      clearIngredientsBtn.addEventListener('click', clearAllIngredients);
+
+      // Filter Mode Toggles
+      const filterButtons = [
+        { btn: document.getElementById('filterAll'), mode: 'all' },
+        { btn: document.getElementById('filterReady'), mode: 'ready' },
+        { btn: document.getElementById('filterFewMissing'), mode: 'few' }
+      ];
+
+      filterButtons.forEach(({ btn, mode }) => {
+        btn.addEventListener('click', () => {
+          filterButtons.forEach(f => {
+            f.btn.classList.remove('bg-white', 'text-slate-800', 'shadow-sm');
+            f.btn.classList.add('text-slate-500');
+          });
+          btn.classList.add('bg-white', 'text-slate-800', 'shadow-sm');
+          btn.classList.remove('text-slate-500');
+          currentFilterMode = mode;
+          renderRecipes();
+        });
+      });
+
+      // Category filters
+      const catButtons = document.querySelectorAll('.cat-btn');
+      catButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          catButtons.forEach(b => {
+            b.classList.remove('bg-slate-900', 'text-white', 'shadow-sm');
+            b.classList.add('bg-white', 'text-slate-600', 'hover:bg-slate-100');
+          });
+          btn.classList.remove('bg-white', 'text-slate-600', 'hover:bg-slate-100');
+          btn.classList.add('bg-slate-900', 'text-white', 'shadow-sm');
+          currentCategory = btn.getAttribute('data-cat');
+          renderRecipes();
+        });
+      });
+
+      // Modal close events
+      closeModalBtn.addEventListener('click', closeRecipeModal);
+      closeModalBottomBtn.addEventListener('click', closeRecipeModal);
+      recipeModal.addEventListener('click', (e) => {
+        if (e.target === recipeModal) closeRecipeModal();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeRecipeModal();
+      });
+    }
+
+    window.onload = function() {
+      // Pre-select a couple of basic everyday staples so user gets immediate visual feedback
+      addIngredient("yumurta");
+      addIngredient("domates");
+
+      renderQuickPicks();
+      setupEventListeners();
+      renderRecipes();
+    };
+  </script>
+</body>
+</html>
