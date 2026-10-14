@@ -68,7 +68,56 @@
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col selection:bg-rose-100 selection:text-rose-900">
+<!-- Dil Seçici Butonlar (Bunu sayfanın üstüne bir yere koyabilirsin) -->
+<div class="lang-selector">
+    <button onclick="changeLanguage('tr')">🇹🇷 TR</button>
+    <button onclick="changeLanguage('en')">🇬🇧 EN</button>
+</div>
 
+<!-- Uygulama Başlığı -->
+<h1 data-i18n="app_title">50 Nefis Yemek Tarifi</h1>
+<p data-i18n="welcome_text">En sevdiğiniz tarifler burada.</p>
+
+<!-- Örnek Bir Tarif Kartı -->
+<div class="recipe-card">
+    <h2 data-i18n="recipe_1_title">Karnıyarık</h2>
+    <p data-i18n="recipe_1_desc">Patlıcan ve kıymanın mükemmel uyumu.</p>
+</div>const translations = {
+    tr: {
+        app_title: "50 Nefis Yemek Tarifi",
+        welcome_text: "En sevdiğiniz tarifler burada.",
+        recipe_1_title: "Karnıyarık",
+        recipe_1_desc: "Patlıcan ve kıymanın mükemmel uyumu."
+        // Diğer tariflerini de buraya ekleyebilirsin
+    },
+    en: {
+        app_title: "50 Delicious Recipes",
+        welcome_text: "Your favorite recipes are here.",
+        recipe_1_title: "Stuffed Eggplant",
+        recipe_1_desc: "The perfect harmony of eggplant and minced meat."
+        // İngilizce karşılıkları
+    }
+};function changeLanguage(lang) {
+    // 1. Seçilen dili cihazın hafızasına kaydet (uygulamaya tekrar girince hatırlasın)
+    localStorage.setItem('selectedLang', lang);
+
+    // 2. Sayfadaki tüm 'data-i18n' özelliğine sahip elementleri bul
+    const elements = document.querySelectorAll('[data-i18n]');
+
+    // 3. Her bir elementin içeriğini sözlükten bularak değiştir
+    elements.forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (translations[lang] && translations[lang][key]) {
+            element.textContent = translations[lang][key];
+        }
+    });
+}
+
+// 4. Uygulama ilk açıldığında hafızadaki dili kontrol et (Yoksa varsayılan TR olsun)
+document.addEventListener('DOMContentLoaded', () => {
+    const savedLang = localStorage.getItem('selectedLang') || 'tr';
+    changeLanguage(savedLang);
+});
   <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 py-3.5 flex items-center justify-between">
       <div class="flex items-center gap-3">
